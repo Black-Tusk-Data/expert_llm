@@ -20,7 +20,7 @@ TogetherAiModel = Literal[
 ]
 GroqModel = Literal[
     "llama-3.1-70b-versatile",
-    "lama-3.1-8b-instant",
+    "llama-3.1-8b-instant",
     "llava-v1.5-7b-4096-preview",
 ]
 
@@ -88,7 +88,7 @@ class GroqClient(OpenAiShapedClient):
         return
 
     # def get_rate_limit(self, model: GroqModel) -> tuple[int, int]:
-    #     if model == "lama-3.1-8b-instant":
+    #     if model == "llama-3.1-8b-instant":
     #         return
     #     if model == "llama-3.1-70b-versatile":
     #         return
