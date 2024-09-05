@@ -40,7 +40,7 @@ class OpenAiShapedClient(RestClientBase):
     ) -> dict:
         return {
             "model": self.model,
-            "messages": [block.model_dump() for block in chat_blocks],
+            "messages": [block.dump_for_prompt() for block in chat_blocks],
             "max_tokens": max_tokens,
             "temperature": temperature,
         }

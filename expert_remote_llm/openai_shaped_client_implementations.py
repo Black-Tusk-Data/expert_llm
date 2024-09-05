@@ -41,6 +41,7 @@ class OpenAIApiClient(OpenAiShapedClient):
             rate_limit_requests=5,
         )
         return
+
     pass
 
 
@@ -56,6 +57,7 @@ class OctoAiApiClient(OpenAiShapedClient):
             rate_limit_requests=1,
         )
         return
+
     pass
 
 
@@ -70,6 +72,7 @@ class TogetherAiClient(OpenAiShapedClient):
             rate_limit_requests=90,
         )
         return
+
     pass
 
 
