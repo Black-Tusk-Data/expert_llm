@@ -5,7 +5,10 @@ from .openai_shaped_client import OpenAiShapedClient
 
 
 OpenAiModel = Literal[
-    "gpt-4o", "gpt-3.5-turbo", "gpt-4o-2024-08-06", "text-embedding-3-small"
+    "gpt-4o",
+    "gpt-3.5-turbo",
+    "gpt-4o-2024-08-06",
+    "text-embedding-3-small",
 ]
 OctoModel = Literal[
     "mixtral-8x7b-instruct-fp16",
@@ -14,6 +17,11 @@ OctoModel = Literal[
 TogetherAiModel = Literal[
     "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
     "mistralai/Mixtral-8x7B-Instruct-v0.1",
+]
+GroqModel = Literal[
+    "llama-3.1-70b-versatile",
+    "lama-3.1-8b-instant",
+    "llava-v1.5-7b-4096-preview",
 ]
 
 
@@ -33,6 +41,7 @@ class OpenAIApiClient(OpenAiShapedClient):
             rate_limit_requests=5,
         )
         return
+    pass
 
 
 class OctoAiApiClient(OpenAiShapedClient):
@@ -47,6 +56,7 @@ class OctoAiApiClient(OpenAiShapedClient):
             rate_limit_requests=1,
         )
         return
+    pass
 
 
 class TogetherAiClient(OpenAiShapedClient):
@@ -60,3 +70,30 @@ class TogetherAiClient(OpenAiShapedClient):
             rate_limit_requests=90,
         )
         return
+    pass
+
+
+class GroqClient(OpenAiShapedClient):
+    def __init__(self, model: GroqModel) -> None:
+        # enforcing a basic rate limit targeting 30 reqs/min
+
+        API_KEY = os.environ.get("GROQ_API_KEY")
+        super().__init__(
+            base="https://api.groq.com/openai/v1",
+            model=model,
+            headers={"Authorization": f"Bearer {API_KEY}"},
+            rate_limit_window_seconds=2,
+            rate_limit_requests=1,
+        )
+        return
+
+    # def get_rate_limit(self, model: GroqModel) -> tuple[int, int]:
+    #     if model == "lama-3.1-8b-instant":
+    #         return
+    #     if model == "llama-3.1-70b-versatile":
+    #         return
+    #     if model == "llava-v1.5-7b-4096-preview":
+    #         return
+    #     return
+
+    pass
