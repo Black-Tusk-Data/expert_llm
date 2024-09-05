@@ -47,7 +47,7 @@ class OpenAIApiClient(OpenAiShapedClient):
 
 class OctoAiApiClient(OpenAiShapedClient):
     def __init__(self, model: OctoModel) -> None:
-        OCTOAI_API_KEY = os.environ.get("OCTOAI_API_KEY")
+        OCTOAI_API_KEY = os.environ["OCTOAI_API_KEY"]
         super().__init__(
             model=str(model),
             base="https://text.octoai.run/v1",
@@ -63,7 +63,7 @@ class OctoAiApiClient(OpenAiShapedClient):
 
 class TogetherAiClient(OpenAiShapedClient):
     def __init__(self, model: TogetherAiModel) -> None:
-        API_KEY = os.environ.get("TOGETHER_API_KEY")
+        API_KEY = os.environ["TOGETHER_API_KEY"]
         super().__init__(
             model=str(model),
             base="https://api.together.xyz/v1",
@@ -80,7 +80,7 @@ class GroqClient(OpenAiShapedClient):
     def __init__(self, model: GroqModel) -> None:
         # enforcing a basic rate limit targeting 30 reqs/min
 
-        API_KEY = os.environ.get("GROQ_API_KEY")
+        API_KEY = os.environ["GROQ_API_KEY"]
         super().__init__(
             base="https://api.groq.com/openai/v1",
             model=model,
