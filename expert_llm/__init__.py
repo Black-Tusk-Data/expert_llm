@@ -5,5 +5,7 @@ from .remote.jina_ai_client import (
 from .models import (
     ChatRole,
     ChatBlock,
+    LlmChatClient,
+    LlmEmbeddingClient,
 )
 from .remote.openai_shaped_client_implementations import *

@@ -16,7 +16,10 @@ class ChatBlock(BaseModel):
 
     def dump_for_prompt(self) -> dict:
         if not self.image_b64:
-            return self.model_dump()
+            return {
+                "role": self.role,
+                "content": self.content,
+            }
         # o/w we have to change the format a bit
         return {
             "role": self.role,
