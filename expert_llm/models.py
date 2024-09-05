@@ -1,9 +1,12 @@
-from typing import Literal
+import abc
+from typing import Literal, TypeVar
 
 from pydantic import BaseModel
 
 
 ChatRole = Literal["system", "user", "assistant"]
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class ChatBlock(BaseModel):
@@ -28,4 +31,32 @@ class ChatBlock(BaseModel):
             ],
         }
 
+    pass
+
+
+class LlmChatClient(abc.ABC):
+    @abc.abstractmethod
+    def chat_completion(
+            self,
+            chat_blocks: list[ChatBlock],
+            **kwargs,
+    ) -> ChatBlock:
+        pass
+
+    @abc.abstractmethod
+    def structured_completion(
+        self,
+        chat_blocks: list[ChatBlock],
+        output_model: type[T],
+        **kwargs,
+    ) -> T:
+        pass
+
+    pass
+
+
+class LlmEmbeddingClient(abc.ABC):
+    @abc.abstractmethod
+    def embed(self, texts: list[str]) -> list[float]:
+        pass
     pass

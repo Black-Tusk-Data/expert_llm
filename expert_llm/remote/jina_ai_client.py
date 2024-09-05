@@ -2,6 +2,7 @@ import os
 from typing import Literal
 
 from btdcore.rest_client_base import RestClientBase
+from expert_llm.models import LlmEmbeddingClient
 
 
 JinaModel = Literal[
@@ -11,14 +12,14 @@ JinaModel = Literal[
 ]
 
 
-class JinaClient(RestClientBase):
+class JinaAiClient(LlmEmbeddingClient):
     def __init__(
         self,
         model: JinaModel,
     ):
         self.model = model
         JINA_AI_API_KEY = os.environ["JINA_AI_API_KEY"]
-        super().__init__(
+        self.client = RestClientBase(
             base="https://api.jina.ai/v1",
             headers=dict(Authorization=f"Bearer {JINA_AI_API_KEY}"),
             rate_limit_window_seconds=1,
@@ -27,7 +28,7 @@ class JinaClient(RestClientBase):
         return
 
     def embed(self, texts: list[str]) -> list[float]:
-        res = self._req(
+        res = self.client._req(
             "POST",
             "/embeddings",
             json={

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from btdcore.rest_client_base import RestClientBase
 from btdcore.utils import scrub_title_key
 
-from .models import ChatBlock
+from expert_llm.models import LlmChatClient, ChatBlock
 
 
 DEFAULT_MAX_TOKENS = 1000
@@ -14,7 +14,7 @@ DEFAULT_TEMPERATURE = 0.1
 T = TypeVar("T", bound=BaseModel)
 
 
-class OpenAiShapedClient(RestClientBase):
+class OpenAiShapedClient(LlmChatClient):
     def __init__(
         self,
         base: str,
@@ -23,7 +23,7 @@ class OpenAiShapedClient(RestClientBase):
         rate_limit_window_seconds=1,
         rate_limit_requests=90,
     ) -> None:
-        super().__init__(
+        self.client = RestClientBase(
             base=base,
             headers=headers,
             rate_limit_window_seconds=rate_limit_window_seconds,
@@ -51,7 +51,7 @@ class OpenAiShapedClient(RestClientBase):
         **kwargs,
     ) -> ChatBlock:
         payload = self._get_base_payload(chat_blocks, **kwargs)
-        r = self._req("POST", "/chat/completions", json=payload)
+        r = self.client._req("POST", "/chat/completions", json=payload)
         response = r.json()["choices"][0]["message"]
         return ChatBlock.model_validate(response)
 
@@ -70,12 +70,12 @@ class OpenAiShapedClient(RestClientBase):
                 "schema": schema,
             },
         }
-        r = self._req("POST", "/chat/completions", json=payload)
+        r = self.client._req("POST", "/chat/completions", json=payload)
         raw = r.json()["choices"][0]["message"]["content"]
         return output_model.model_validate_json(raw)
 
     def compute_embedding(self, text: str) -> list[float]:
-        r = self._req(
+        r = self.client._req(
             "POST",
             "/embeddings",
             json={
