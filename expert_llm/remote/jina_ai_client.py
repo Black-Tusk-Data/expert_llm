@@ -6,9 +6,9 @@ from expert_llm.models import LlmEmbeddingClient
 
 
 JinaModel = Literal[
-    "jina-clip-v1",
+    # "jina-clip-v1",
     "jina-embeddings-v2-base-en",
-    "jina-embeddings-v2-base-code",
+    # "jina-embeddings-v2-base-code",
 ]
 
 
@@ -41,5 +41,10 @@ class JinaAiClient(LlmEmbeddingClient):
         data = res.json()
         embeds = [r["embedding"] for r in data["data"]]
         return embeds
+
+    def get_embedding_vector_length(self) -> int:
+        if self.model == "jina-embeddings-v2-base-en":
+            return 768
+        return super().get_embedding_vector_length()
 
     pass

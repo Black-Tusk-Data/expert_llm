@@ -13,6 +13,8 @@ OpenAiModel = Literal[
 OctoModel = Literal[
     "mixtral-8x7b-instruct-fp16",
     "nous-hermes-2-mixtral-8x7b-dpo",
+    "meta-llama-3.1-70b-instruct",
+    "meta-llama-3.1-8b-instruct",
 ]
 TogetherAiModel = Literal[
     "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
@@ -54,7 +56,7 @@ class OctoAiApiClient(OpenAiShapedClient):
             headers={"Authorization": f"Bearer {OCTOAI_API_KEY}"},
             # this is slower than advertised, but empirically enforced
             rate_limit_window_seconds=1,
-            rate_limit_requests=1,
+            rate_limit_requests=4,
         )
         return
 

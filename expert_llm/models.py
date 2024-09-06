@@ -63,4 +63,7 @@ class LlmEmbeddingClient(abc.ABC):
     def embed(self, texts: list[str]) -> list[float]:
         pass
 
+    def get_embedding_vector_length(self) -> int:
+        raise Exception("Don't know model embedding size!")
+
     pass
