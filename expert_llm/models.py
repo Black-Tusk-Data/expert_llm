@@ -60,7 +60,7 @@ class LlmChatClient(abc.ABC):
 
 class LlmEmbeddingClient(abc.ABC):
     @abc.abstractmethod
-    def embed(self, texts: list[str]) -> list[float]:
+    def embed(self, texts: list[str]) -> list[list[float]]:
         pass
 
     def get_embedding_vector_length(self) -> int:

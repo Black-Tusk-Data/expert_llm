@@ -27,7 +27,7 @@ class JinaAiClient(LlmEmbeddingClient):
         )
         return
 
-    def embed(self, texts: list[str]) -> list[float]:
+    def embed(self, texts: list[str]) -> list[list[float]]:
         res = self.client._req(
             "POST",
             "/embeddings",
