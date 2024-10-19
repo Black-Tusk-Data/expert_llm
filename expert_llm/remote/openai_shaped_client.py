@@ -30,7 +30,11 @@ class OpenAiShapedClient(LlmChatClient):
             rate_limit_requests=rate_limit_requests,
         )
         self.model = model
+        self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
         return
+
+    def get_max_concurrent_requests(self) -> int:
+        return self.max_concurrent_requests
 
     def _get_base_payload(
         self,

@@ -39,6 +39,10 @@ class ChatBlock(BaseModel):
 
 class LlmChatClient(abc.ABC):
     @abc.abstractmethod
+    def get_max_concurrent_requests(self) -> int:
+        pass
+
+    @abc.abstractmethod
     def chat_completion(
         self,
         chat_blocks: list[ChatBlock],

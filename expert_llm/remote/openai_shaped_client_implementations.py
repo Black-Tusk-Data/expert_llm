@@ -19,6 +19,7 @@ OctoModel = Literal[
 TogetherAiModel = Literal[
     "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
     "mistralai/Mixtral-8x7B-Instruct-v0.1",
+    "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
 ]
 GroqModel = Literal[
     "llama-3.1-70b-versatile",
@@ -71,7 +72,7 @@ class TogetherAiClient(OpenAiShapedClient):
             base="https://api.together.xyz/v1",
             headers={"Authorization": f"Bearer {API_KEY}"},
             rate_limit_window_seconds=1,
-            rate_limit_requests=90,
+            rate_limit_requests=10,
         )
         return
 
