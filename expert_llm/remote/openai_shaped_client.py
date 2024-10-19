@@ -23,6 +23,8 @@ class OpenAiShapedClient(LlmChatClient):
         rate_limit_window_seconds=1,
         rate_limit_requests=90,
     ) -> None:
+        self.base = base
+        self.headers = headers
         self.client = RestClientBase(
             base=base,
             headers=headers,
@@ -32,6 +34,22 @@ class OpenAiShapedClient(LlmChatClient):
         self.model = model
         self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
         return
+
+    def override_rate_limit(
+            self,
+            *,
+            rate_limit_window_seconds: int,
+            rate_limit_requests: int,
+    ):
+        self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
+        self.client = RestClientBase(
+            base=self.base,
+            headers=self.headers,
+            rate_limit_window_seconds=rate_limit_window_seconds,
+            rate_limit_requests=rate_limit_requests,
+        )
+        return
+
 
     def get_max_concurrent_requests(self) -> int:
         return self.max_concurrent_requests
