@@ -8,6 +8,7 @@ from expert_llm.models import LlmEmbeddingClient
 JinaModel = Literal[
     # "jina-clip-v1",
     "jina-embeddings-v2-base-en",
+    "jina-embeddings-v3",
     # "jina-embeddings-v2-base-code",
 ]
 

@@ -1,3 +1,5 @@
+import json
+import logging
 from typing import TypeVar
 
 from pydantic import BaseModel
@@ -77,6 +79,31 @@ class OpenAiShapedClient(LlmChatClient):
         response = r.json()["choices"][0]["message"]
         return ChatBlock.model_validate(response)
 
+    def structured_completion_raw(
+        self,
+        *,
+        chat_blocks: list[ChatBlock],
+        output_schema: dict,
+        output_schema_name: str | None = None,
+        **kwargs,
+    ) -> dict:
+        payload = self._get_base_payload(chat_blocks, **kwargs)
+        payload["response_format"] = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": output_schema_name or "Output",
+                "schema": output_schema,
+            },
+        }
+        r = self.client._req("POST", "/chat/completions", json=payload)
+        raw = r.json()["choices"][0]["message"]["content"]
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as e:
+            logging.error("failed to parse to JSON: %s, error: %s", raw, e)
+            raise e
+        pass
+
     def structured_completion(
         self,
         chat_blocks: list[ChatBlock],
@@ -84,17 +111,12 @@ class OpenAiShapedClient(LlmChatClient):
         **kwargs,
     ) -> T:
         schema = scrub_title_key(output_model.model_json_schema())
-        payload = self._get_base_payload(chat_blocks, **kwargs)
-        payload["response_format"] = {
-            "type": "json_schema",
-            "json_schema": {
-                "name": output_model.__name__,
-                "schema": schema,
-            },
-        }
-        r = self.client._req("POST", "/chat/completions", json=payload)
-        raw = r.json()["choices"][0]["message"]["content"]
-        return output_model.model_validate_json(raw)
+        raw = self.structured_completion_raw(
+            chat_blocks=chat_blocks,
+            output_schema=schema,
+            output_schema_name=output_model.__name__,
+        )
+        return output_model.model_validate(raw)
 
     def compute_embedding(self, text: str) -> list[float]:
         r = self.client._req(
