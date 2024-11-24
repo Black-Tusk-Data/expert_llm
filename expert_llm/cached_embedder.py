@@ -40,25 +40,36 @@ class CachedEmbedder:
                 ]
                 pass
             pass
-        to_compute = {
-            text: i
+        to_compute = [
+            (text, i)
             for i, text in enumerate(texts)
             if cached[i] is None
-        }
+        ]
         if not to_compute:
             return cached
-        new_embeddings = self.client.embed(list(to_compute.keys()))
+        new_embeddings = self.client.embed([
+            text
+            for text, _ in to_compute
+        ])
         with self.lock:
             with shelve.open(self.cache_file) as shelf:
-                for text, new_embed in zip(to_compute.keys(), new_embeddings):
+                for (text, _), new_embed in zip(to_compute, new_embeddings):
                     hashed_text = md5_b64_str(text)
-                    shelf[hashed_text] = new_embed
+                    try:
+                        shelf[hashed_text] = new_embed
+                    except Exception as e:
+                        logging.error("failed to add embedding to cache: %s", e)
+                        pass
                     pass
                 pass
             pass
-        for text, new_embed in zip(to_compute.keys(), new_embeddings):
-            cached[to_compute[text]] = new_embed
+
+        results = [*cached]
+        for (_, i), new_embed in zip(to_compute, new_embeddings):
+            results[i] = new_embed
             pass
-        return cached
+
+        assert all(results)
+        return results
 
     pass
