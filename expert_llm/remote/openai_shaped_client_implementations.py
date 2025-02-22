@@ -6,6 +6,7 @@ from .openai_shaped_client import OpenAiShapedClient
 
 OpenAiModel = Literal[
     "gpt-4o",
+    "gpt-4o-mini",
     "gpt-3.5-turbo",
     "gpt-4o-2024-08-06",
     "text-embedding-3-small",
@@ -29,7 +30,7 @@ GroqModel = Literal[
 
 
 class OpenAIApiClient(OpenAiShapedClient):
-    def __init__(self, model: OpenAiModel) -> None:
+    def __init__(self, model: OpenAiModel, **kwargs) -> None:
         api_key = os.environ["OPENAI_API_KEY"]
         super().__init__(
             model=str(model),
@@ -42,22 +43,7 @@ class OpenAIApiClient(OpenAiShapedClient):
             # pretty rough, this is not enforced as specified here
             rate_limit_window_seconds=1,
             rate_limit_requests=5,
-        )
-        return
-
-    pass
-
-
-class OctoAiApiClient(OpenAiShapedClient):
-    def __init__(self, model: OctoModel) -> None:
-        OCTOAI_API_KEY = os.environ["OCTOAI_API_KEY"]
-        super().__init__(
-            model=str(model),
-            base="https://text.octoai.run/v1",
-            headers={"Authorization": f"Bearer {OCTOAI_API_KEY}"},
-            # this is slower than advertised, but empirically enforced
-            rate_limit_window_seconds=1,
-            rate_limit_requests=4,
+            **kwargs,
         )
         return
 
@@ -65,7 +51,7 @@ class OctoAiApiClient(OpenAiShapedClient):
 
 
 class TogetherAiClient(OpenAiShapedClient):
-    def __init__(self, model: TogetherAiModel) -> None:
+    def __init__(self, model: TogetherAiModel, **kwargs) -> None:
         API_KEY = os.environ["TOGETHER_API_KEY"]
         super().__init__(
             model=str(model),
@@ -73,6 +59,7 @@ class TogetherAiClient(OpenAiShapedClient):
             headers={"Authorization": f"Bearer {API_KEY}"},
             rate_limit_window_seconds=1,
             rate_limit_requests=10,
+            **kwargs,
         )
         return
 
@@ -80,7 +67,7 @@ class TogetherAiClient(OpenAiShapedClient):
 
 
 class GroqClient(OpenAiShapedClient):
-    def __init__(self, model: GroqModel) -> None:
+    def __init__(self, model: GroqModel, **kwargs) -> None:
         # enforcing a basic rate limit targeting 30 reqs/min
 
         API_KEY = os.environ["GROQ_API_KEY"]
@@ -90,6 +77,7 @@ class GroqClient(OpenAiShapedClient):
             headers={"Authorization": f"Bearer {API_KEY}"},
             rate_limit_window_seconds=2,
             rate_limit_requests=1,
+            **kwargs,
         )
         return
 
