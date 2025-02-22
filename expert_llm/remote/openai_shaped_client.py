@@ -24,6 +24,7 @@ class OpenAiShapedClient(LlmChatClient):
         headers: dict,
         rate_limit_window_seconds=1,
         rate_limit_requests=90,
+        **kwargs,
     ) -> None:
         self.base = base
         self.headers = headers
@@ -32,6 +33,7 @@ class OpenAiShapedClient(LlmChatClient):
             headers=headers,
             rate_limit_window_seconds=rate_limit_window_seconds,
             rate_limit_requests=rate_limit_requests,
+            **kwargs,
         )
         self.model = model
         self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
