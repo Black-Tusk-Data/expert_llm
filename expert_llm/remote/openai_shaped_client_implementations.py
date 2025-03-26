@@ -40,6 +40,7 @@ class OpenAIApiClient(OpenAiShapedClient):
                 "Content-Type": "application/json",
                 "OpenAI-Beta": "assistants=v1",
             },
+            schema_requires_all_properties=True,
             # pretty rough, this is not enforced as specified here
             rate_limit_window_seconds=1,
             rate_limit_requests=5,

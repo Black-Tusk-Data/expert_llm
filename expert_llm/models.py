@@ -1,5 +1,5 @@
 import abc
-from typing import Literal, TypeVar
+from typing import Literal, NamedTuple, TypeVar
 
 from pydantic import BaseModel
 
@@ -59,6 +59,17 @@ class LlmChatClient(abc.ABC):
     ) -> T:
         pass
 
+    @abc.abstractmethod
+    def structured_completion_raw(
+        self,
+        *,
+        chat_blocks: list[ChatBlock],
+        output_schema: dict,
+        output_schema_name: str | None = None,
+        **kwargs,
+    ) -> dict:
+        pass
+
     pass
 
 
@@ -70,4 +81,10 @@ class LlmEmbeddingClient(abc.ABC):
     def get_embedding_vector_length(self) -> int:
         raise Exception("Don't know model embedding size!")
 
+    pass
+
+
+class LlmResponse(NamedTuple):
+    message: str | None = None
+    structured_output: dict | None = None
     pass

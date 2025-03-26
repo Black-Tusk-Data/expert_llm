@@ -12,10 +12,10 @@ class CachedEmbedder:
     CACHE_FILE_NAME = ".embeddings_cache.dat"
 
     def __init__(
-            self,
-            *,
-            client: LlmEmbeddingClient,
-            cache_dir: Path,
+        self,
+        *,
+        client: LlmEmbeddingClient,
+        cache_dir: Path,
     ):
         self.client = client
         self.cache_file = cache_dir / self.CACHE_FILE_NAME
@@ -29,28 +29,16 @@ class CachedEmbedder:
         return None
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        cached: list[
-            list[float] | None
-        ] = []
+        cached: list[list[float] | None] = []
         with self.lock:
             with shelve.open(self.cache_file) as shelf:
-                cached = [
-                    self._lookup_text(shelf, text)
-                    for text in texts
-                ]
+                cached = [self._lookup_text(shelf, text) for text in texts]
                 pass
             pass
-        to_compute = [
-            (text, i)
-            for i, text in enumerate(texts)
-            if cached[i] is None
-        ]
+        to_compute = [(text, i) for i, text in enumerate(texts) if cached[i] is None]
         if not to_compute:
             return cached
-        new_embeddings = self.client.embed([
-            text
-            for text, _ in to_compute
-        ])
+        new_embeddings = self.client.embed([text for text, _ in to_compute])
         with self.lock:
             with shelve.open(self.cache_file) as shelf:
                 for (text, _), new_embed in zip(to_compute, new_embeddings):

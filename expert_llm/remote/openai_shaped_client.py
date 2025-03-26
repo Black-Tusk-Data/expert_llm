@@ -1,3 +1,5 @@
+from collections import deque
+from copy import deepcopy
 import json
 import logging
 from typing import TypeVar
@@ -16,12 +18,34 @@ DEFAULT_TEMPERATURE = 0.1
 T = TypeVar("T", bound=BaseModel)
 
 
+def format_schema_all_properties_required(schema: dict) -> dict:
+    schema = deepcopy(schema)
+    q = deque([schema])
+    while q:
+        cur = q.popleft()
+        cur["additionalProperties"] = False
+        cur["required"] = list(cur["properties"].keys())
+        for prop_conf in cur["properties"].values():
+            if prop_conf["type"] == "object":
+                q.append(prop_conf)
+                pass
+            if prop_conf["type"] == "array":
+                if prop_conf["items"]["type"] == "object":
+                    q.append(prop_conf["items"])
+                    pass
+                pass
+            pass
+        pass
+    return schema
+
+
 class OpenAiShapedClient(LlmChatClient):
     def __init__(
         self,
         base: str,
         model: str,
         headers: dict,
+        schema_requires_all_properties=False,
         rate_limit_window_seconds=1,
         rate_limit_requests=90,
         **kwargs,
@@ -37,13 +61,14 @@ class OpenAiShapedClient(LlmChatClient):
         )
         self.model = model
         self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
+        self.schema_requires_all_properties = schema_requires_all_properties
         return
 
     def override_rate_limit(
-            self,
-            *,
-            rate_limit_window_seconds: int,
-            rate_limit_requests: int,
+        self,
+        *,
+        rate_limit_window_seconds: int,
+        rate_limit_requests: int,
     ):
         self.max_concurrent_requests = rate_limit_requests // rate_limit_window_seconds
         self.client = RestClientBase(
@@ -53,7 +78,6 @@ class OpenAiShapedClient(LlmChatClient):
             rate_limit_requests=rate_limit_requests,
         )
         return
-
 
     def get_max_concurrent_requests(self) -> int:
         return self.max_concurrent_requests
@@ -94,7 +118,12 @@ class OpenAiShapedClient(LlmChatClient):
             "type": "json_schema",
             "json_schema": {
                 "name": output_schema_name or "Output",
-                "schema": output_schema,
+                "schema": (
+                    output_schema
+                    if not self.schema_requires_all_properties
+                    else format_schema_all_properties_required(output_schema)
+                ),
+                "strict": True,
             },
         }
         r = self.client._req("POST", "/chat/completions", json=payload)
