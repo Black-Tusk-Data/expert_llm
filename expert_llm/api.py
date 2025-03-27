@@ -1,9 +1,21 @@
+import logging
+import time
+import traceback
+
 from expert_llm.models import ChatBlock, LlmChatClient, LlmResponse
 
 
 class LlmApi:
-    def __init__(self, client: LlmChatClient):
+    SLEEP_ON_ERR = 3
+
+    def __init__(
+        self,
+        client: LlmChatClient,
+        *,
+        req_log_level: str = "info",
+    ):
         self.llm_client = client
+        self.req_log_level = req_log_level
         return
 
     def completion(
@@ -14,6 +26,7 @@ class LlmApi:
         user: str,
         output_schema: dict | None = None,
         max_tokens: int = 16000,
+        max_attempts: int = 3,
     ) -> LlmResponse:
         chat_blocks = [
             ChatBlock(
@@ -25,23 +38,39 @@ class LlmApi:
                 content=user,
             ),
         ]
-        result: LlmResponse
-        if output_schema:
-            output = self.llm_client.structured_completion_raw(
-                chat_blocks=chat_blocks,
-                output_schema=output_schema,
-                max_tokens=max_tokens,
-            )
-            result = LlmResponse(
-                structured_output=output,
-            )
-            pass
-        else:
+
+        def do_req() -> LlmResponse:
+            getattr(logging, self.req_log_level)("REQ %s", req_name)
+            if output_schema:
+                output = self.llm_client.structured_completion_raw(
+                    chat_blocks=chat_blocks,
+                    output_schema=output_schema,
+                    max_tokens=max_tokens,
+                )
+                return LlmResponse(
+                    structured_output=output,
+                )
             completion = self.llm_client.chat_completion(
                 chat_blocks, max_tokens=max_tokens
             )
-            result = LlmResponse(message=completion.content)
+            return LlmResponse(message=completion.content)
+
+        last_err: Exception
+        for attempt in range(max_attempts):
+            try:
+                return do_req()
+            except Exception as e:
+                last_err = e
+                logging.error(
+                    "LLM request failed: %s, trace: %s", e, traceback.format_exc()
+                )
+                if attempt + 1 == max_attempts:
+                    raise e
+                time.sleep(self.SLEEP_ON_ERR)
+                pass
             pass
-        return result
+
+        # never hit, just for typing
+        raise last_err
 
     pass
