@@ -18,5 +18,8 @@ setup(
     },
     install_requires=[
         "btdcore",
+        "jsonschema",
+        "pydantic",
+        "requests",
     ],
 )

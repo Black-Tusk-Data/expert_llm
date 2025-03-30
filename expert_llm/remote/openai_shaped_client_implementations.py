@@ -42,8 +42,8 @@ class OpenAIApiClient(OpenAiShapedClient):
             },
             schema_requires_all_properties=True,
             # pretty rough, this is not enforced as specified here
-            rate_limit_window_seconds=1,
-            rate_limit_requests=5,
+            rate_limit_window_seconds=kwargs.pop("rate_limit_window_seconds", 1),
+            rate_limit_requests=kwargs.pop("rate_limit_requests", 5),
             **kwargs,
         )
         return
@@ -58,8 +58,8 @@ class TogetherAiClient(OpenAiShapedClient):
             model=str(model),
             base="https://api.together.xyz/v1",
             headers={"Authorization": f"Bearer {API_KEY}"},
-            rate_limit_window_seconds=1,
-            rate_limit_requests=10,
+            rate_limit_window_seconds=kwargs.pop("rate_limit_window_seconds", 1),
+            rate_limit_requests=kwargs.pop("rate_limit_requests", 10),
             **kwargs,
         )
         return
@@ -76,19 +76,9 @@ class GroqClient(OpenAiShapedClient):
             base="https://api.groq.com/openai/v1",
             model=model,
             headers={"Authorization": f"Bearer {API_KEY}"},
-            rate_limit_window_seconds=2,
-            rate_limit_requests=1,
+            supports_true_json_mode=False,
             **kwargs,
         )
         return
-
-    # def get_rate_limit(self, model: GroqModel) -> tuple[int, int]:
-    #     if model == "llama-3.1-8b-instant":
-    #         return
-    #     if model == "llama-3.1-70b-versatile":
-    #         return
-    #     if model == "llava-v1.5-7b-4096-preview":
-    #         return
-    #     return
 
     pass

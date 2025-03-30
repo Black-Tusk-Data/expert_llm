@@ -13,9 +13,11 @@ class LlmApi:
         client: LlmChatClient,
         *,
         req_log_level: str = "info",
+        req_kwargs: dict | None = None,
     ):
         self.llm_client = client
         self.req_log_level = req_log_level
+        self.req_kwargs = req_kwargs
         return
 
     def completion(
@@ -27,7 +29,12 @@ class LlmApi:
         output_schema: dict | None = None,
         max_tokens: int = 16000,
         max_attempts: int = 3,
+        **kwargs,
     ) -> LlmResponse:
+        kwargs = {
+            **(self.req_kwargs or {}),
+            **kwargs,
+        }
         chat_blocks = [
             ChatBlock(
                 role="system",
@@ -40,12 +47,13 @@ class LlmApi:
         ]
 
         def do_req() -> LlmResponse:
-            getattr(logging, self.req_log_level)("REQ %s", req_name)
+            getattr(logging, self.req_log_level)("%s", req_name)
             if output_schema:
                 output = self.llm_client.structured_completion_raw(
                     chat_blocks=chat_blocks,
                     output_schema=output_schema,
                     max_tokens=max_tokens,
+                    **kwargs,
                 )
                 return LlmResponse(
                     structured_output=output,
