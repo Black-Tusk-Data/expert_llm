@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="expert_llm",
-    version="v0.1.8",
+    version="v0.1.9",
     description="LLM client for 'expert'",
     author="Liam Tengelis",
     author_email="liam.tengelis@blacktuskdata.com",
