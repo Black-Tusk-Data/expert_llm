@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from btdcore.rest_client_base import RestClientBase
 from btdcore.utils import scrub_title_key
 
-from expert_llm.models import LlmChatClient, ChatBlock
+from expert_llm.models import LlmChatClient, ChatBlock, LlmEmbeddingClient
 
 
 DEFAULT_MAX_TOKENS = 1000
@@ -41,7 +41,7 @@ def format_schema_all_properties_required(schema: dict) -> dict:
     return schema
 
 
-class OpenAiShapedClient(LlmChatClient):
+class OpenAiShapedClient(LlmChatClient, LlmEmbeddingClient):
     def __init__(
         self,
         base: str,
@@ -99,9 +99,7 @@ class OpenAiShapedClient(LlmChatClient):
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
-        for allowed_key in [
-                "service_tier"
-        ]:
+        for allowed_key in ["service_tier"]:
             if allowed_key in kwargs:
                 payload[allowed_key] = kwargs[allowed_key]
             pass
@@ -128,11 +126,7 @@ class OpenAiShapedClient(LlmChatClient):
     ) -> dict:
         if not self.supports_true_json_mode:
             # have to shim the schema def in
-            system_messages = [
-                block
-                for block in chat_blocks
-                if block.role == "system"
-            ]
+            system_messages = [block for block in chat_blocks if block.role == "system"]
             if not system_messages:
                 chat_blocks = [
                     ChatBlock(
@@ -144,11 +138,13 @@ class OpenAiShapedClient(LlmChatClient):
                 system_messages = chat_blocks[:1]
                 pass
             system_message = system_messages[-1]
-            system_message.content = "\n".join([
-                system_message.content,
-                "Your response must conform to the following JSON schema:",
-                json.dumps(output_schema),
-            ])
+            system_message.content = "\n".join(
+                [
+                    system_message.content,
+                    "Your response must conform to the following JSON schema:",
+                    json.dumps(output_schema),
+                ]
+            )
             pass
         payload = self._get_base_payload(chat_blocks, **kwargs)
         if self.supports_true_json_mode:
@@ -196,13 +192,13 @@ class OpenAiShapedClient(LlmChatClient):
         )
         return output_model.model_validate(raw)
 
-    def compute_embedding(self, text: str) -> list[float]:
-        r = self.client._req(
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        res = self.client._req(
             "POST",
             "/embeddings",
             json={
                 "model": self.model,
-                "input": text,
+                "input": texts,
             },
         )
-        return r.json()["data"][0]["embedding"]
+        return [r["embedding"] for r in res.json()["data"]]
