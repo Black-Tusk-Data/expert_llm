@@ -13,7 +13,7 @@ from btdcore.utils import scrub_title_key
 from expert_llm.models import LlmChatClient, ChatBlock, LlmEmbeddingClient
 
 
-DEFAULT_MAX_TOKENS = 1000
+DEFAULT_MAX_TOKENS = 100_000
 DEFAULT_TEMPERATURE = 0.1
 
 
@@ -91,6 +91,7 @@ class OpenAiShapedClient(LlmChatClient, LlmEmbeddingClient):
         chat_blocks: list[ChatBlock],
         max_tokens: int = DEFAULT_MAX_TOKENS,
         temperature: float = DEFAULT_TEMPERATURE,
+        tools: list[dict] | None = None,
         **kwargs,
     ) -> dict:
         payload = {
@@ -99,6 +100,10 @@ class OpenAiShapedClient(LlmChatClient, LlmEmbeddingClient):
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "required"
+            pass
         for allowed_key in ["service_tier"]:
             if allowed_key in kwargs:
                 payload[allowed_key] = kwargs[allowed_key]
@@ -202,3 +207,14 @@ class OpenAiShapedClient(LlmChatClient, LlmEmbeddingClient):
             },
         )
         return [r["embedding"] for r in res.json()["data"]]
+
+    def elect_tool_calls(
+            self,
+            chat_blocks: list[ChatBlock],
+            tools: list[dict],
+            **kwargs,
+    ) -> list[dict]:
+        payload = self._get_base_payload(chat_blocks, tools=tools, **kwargs)
+        r = self.client._req("POST", "/chat/completions", json=payload)
+        message = r.json()["choices"][0]["message"]
+        return message["tool_calls"]

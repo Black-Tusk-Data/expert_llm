@@ -20,6 +20,36 @@ class LlmApi:
         self.req_kwargs = req_kwargs
         return
 
+    def elect_tool_calls(
+            self,
+            *,
+            req_name: str,
+            system: str,
+            user: str,
+            tools: list[dict],
+            max_tokens: int = 16000,
+            max_attempts: int = 3,
+    ) -> list[dict]:
+        def do_req() -> list[dict]:
+            getattr(logging, self.req_log_level)("%s", req_name)
+            return self.llm_client.elect_tool_calls(
+              chat_blocks = [
+                  ChatBlock(
+                      role="system",
+                      content=system,
+                  ),
+                  ChatBlock(
+                      role="user",
+                      content=user,
+                  ),
+              ],
+              max_tokens=max_tokens,
+              tools=tools,
+            )
+
+        return self._attempt_multiple_times(do_req, max_attempts=max_attempts)
+
+
     def completion(
         self,
         *,
@@ -27,7 +57,7 @@ class LlmApi:
         system: str,
         user: str,
         output_schema: dict | None = None,
-        max_tokens: int = 16000,
+        max_tokens: int | None = None,
         max_attempts: int = 3,
         **kwargs,
     ) -> LlmResponse:
@@ -63,10 +93,18 @@ class LlmApi:
             )
             return LlmResponse(message=completion.content)
 
+        return self._attempt_multiple_times(do_req, max_attempts=max_attempts)
+
+    def _attempt_multiple_times(
+            self,
+            req_fn,
+            *,
+            max_attempts: int,
+    ):
         last_err: Exception
         for attempt in range(max_attempts):
             try:
-                return do_req()
+                return req_fn()
             except Exception as e:
                 last_err = e
                 logging.error(
@@ -80,5 +118,6 @@ class LlmApi:
 
         # never hit, just for typing
         raise last_err
+        return
 
     pass

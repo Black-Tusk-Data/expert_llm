@@ -70,6 +70,15 @@ class LlmChatClient(abc.ABC):
     ) -> dict:
         pass
 
+    @abc.abstractmethod
+    def elect_tool_calls(
+        self,
+        chat_blocks: list[ChatBlock],
+        tools: list[dict],
+        **kwargs,
+    ) -> list[dict]:
+        pass
+
     pass
 
 
