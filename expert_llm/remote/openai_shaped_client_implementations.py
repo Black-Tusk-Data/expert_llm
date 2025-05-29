@@ -32,9 +32,13 @@ GroqModel = Literal[
 class OpenAIApiClient(OpenAiShapedClient):
     def __init__(self, model: OpenAiModel, **kwargs) -> None:
         api_key = os.environ["OPENAI_API_KEY"]
+        endpoint = os.environ.get(
+            "OPENAI_API_ENDPOINT",
+            "https://api.openai.com/v1",
+        )
         super().__init__(
             model=str(model),
-            base="https://api.openai.com/v1",
+            base=endpoint,
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
